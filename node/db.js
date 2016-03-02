@@ -14,9 +14,9 @@ var state = {
 
 exports.connect = function(mode, done) {
   state.pool = mysql.createPool({
-    host: 'mydbinstance.cquxjhmjewwr.us-west-2.rds.amazonaws.com',
-    user: 'master1',
-    password: 'M2H5hZmb',
+    host: 'XXXXX',
+    user: 'XXXX',
+    password: 'XXXX',
     port: '3306', 
     database: 'mydb'
   })
