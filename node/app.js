@@ -25,6 +25,46 @@ var app = express();
 //Development variable
 app.set('env', 'development');
 
+//JSON
+app.use( bodyParser.json() );       // to support JSON-encoded bodies
+app.use(bodyParser.urlencoded({     // to support URL-encoded bodies
+  extended: true
+}));
+//
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+//Session
+var session = require('express-session');
+var MySQLStore = require('express-mysql-session')(session);
+var sessionData = require('./session');
+var sessionStore = new MySQLStore(sessionData.options);
+
+app.use(session({
+    key: 'session_cookie_name',
+    secret: 'session_cookie_secret2',
+    store: sessionStore,
+    resave: true,
+    saveUninitialized: false,
+    unset: 'destroy',
+    cookie: {
+      expires: false
+    },
+}));
+
+/*
+app.use(function (req, res, next) {
+  var userName = req.session.userName
+
+  if (!userName)
+    console.log("No user session");
+  else
+    console.log("user session: " + userName);
+  next()
+});
+*/
+
+/////////////////////////////////////////////////////////////////////////////////
+
 //app.get('/hikes', hike.index);
 //app.post('/add_hike', hike.add_hike);
 
@@ -44,7 +84,38 @@ app.use(express.static(__dirname + '/public'));
 //app.use('/', routes);
 
 app.get('/zonas', zonas.all)
-app.post('/usuarios', usuarios.register)
+app.get('/usuarios/activeSession', function(req,res){
+  var userName = req.session.userName;
+  var response;
+
+  if (!userName)
+    response = {status:'ERROR'};
+  else{
+    response = {status:'SUCCESS'};
+    response.data = {user: userName , email: req.session.userName};
+  }
+  res.send(JSON.stringify(response));
+})
+app.get('/usuarios/logout', function(req,res){
+  req.session.destroy();
+  var response;
+
+  if (req.session)
+    response = {status:'ERROR'};
+  else{
+    response = {status:'SUCCESS'};
+  }
+  res.send(JSON.stringify(response));
+})
+
+app.post('/usuarios', function(req,res){
+  usuarios.register(req,res)
+  console.log(":::::"+res);
+  if (res.status = "SUCCESS"){
+    req.session.userName = req.body.nombre;
+    req.session.email = req.body.email;
+  }
+})
 
 // Connect to MySQL on start
 db.connect(db.MODE_PRODUCTION, function(err) {
